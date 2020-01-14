@@ -16,10 +16,23 @@
 #define NV_ABORT_IGNORE     2
 #define NV_ABORT_EXIT       3
 
+#if NV_CC_MSVC
+# define nvNoAssert(exp) __assume(exp)
+#elif __clang__
+# define nvNoAssert(exp) __builtin_assume(exp)
+#else
+# define nvNoAssert(exp) do { if (!(exp)) __builtin_unreachable(); } while(0)
+#endif
+
+#include <cassert>
+#define nvAbort(exp, ...) assert(exp)
+
+/*
 #define nvNoAssert(exp) \
     NV_MULTI_LINE_MACRO_BEGIN \
     (void)sizeof(exp); \
     NV_MULTI_LINE_MACRO_END
+*/
 
 #if NV_NO_ASSERT
 
@@ -57,20 +70,9 @@
 #   endif
 */
 
-#define nvDebugBreakOnce() \
-    NV_MULTI_LINE_MACRO_BEGIN \
-    static bool firstTime = true; \
-    if (firstTime) { firstTime = false; nvDebugBreak(); } \
-    NV_MULTI_LINE_MACRO_END
+#define nvDebugBreakOnce()
 
-#define nvAssertMacro(exp) \
-    NV_MULTI_LINE_MACRO_BEGIN \
-    if (!(exp)) { \
-        if (nvAbort(#exp, __FILE__, __LINE__, __FUNC__) == NV_ABORT_DEBUG) { \
-            nvDebugBreak(); \
-        } \
-    } \
-    NV_MULTI_LINE_MACRO_END
+#define nvAssertMacro(exp)
 
 // GCC, LLVM need "##" before the __VA_ARGS__, MSVC doesn't care
 #define nvAssertMacroWithIgnoreAll(exp,...) \
@@ -143,10 +145,10 @@
 
 
 #define nvError(x)      nvAbort(x, __FILE__, __LINE__, __FUNC__)
-#define nvWarning(x)    nvDebugPrint("*** Warning %s/%d: %s\n", __FILE__, __LINE__, (x))
+#define nvWarning(x)
 
 #ifndef NV_DEBUG_PRINT
-#define NV_DEBUG_PRINT 1 //defined(_DEBUG)
+#define NV_DEBUG_PRINT 0 //defined(_DEBUG)
 #endif
 
 #if NV_DEBUG_PRINT
@@ -159,9 +161,6 @@
 #endif
 #endif
 
-
-NVCORE_API int nvAbort(const char *exp, const char *file, int line, const char * func = NULL, const char * msg = NULL, ...) __attribute__((format (printf, 5, 6)));
-NVCORE_API void NV_CDECL nvDebugPrint( const char *msg, ... ) __attribute__((format (printf, 1, 2)));
 
 namespace nv
 {

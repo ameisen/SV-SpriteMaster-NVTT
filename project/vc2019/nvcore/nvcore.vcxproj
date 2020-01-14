@@ -173,7 +173,6 @@
     <ClInclude Include="..\..\..\src\nvcore\Timer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\nvcore\Debug.cpp" />
     <ClCompile Include="..\..\..\src\nvcore\Memory.cpp" />
     <ClCompile Include="..\..\..\src\nvcore\StrLib.cpp" />
     <ClCompile Include="..\..\..\src\nvcore\Timer.cpp" />

@@ -32,29 +32,20 @@
 
 namespace nvtt {
 
-    struct SequentialTaskDispatcher : public TaskDispatcher
+    struct SequentialTaskDispatcher final : public TaskDispatcher
     {
-        virtual void dispatch(Task * task, void * context, int count) {
+        virtual void dispatch(Task * task, void * context, int count) override final {
             for (int i = 0; i < count; i++) {
                 task(context, i);
             }
         }
     };
 
-    struct ParallelTaskDispatcher : public TaskDispatcher
-    {
-        virtual void dispatch(Task * task, void * context, int count) {
-            nv::ParallelFor parallelFor(task, context);
-            parallelFor.run(count); // @@ Add support for custom grain.
-        }
-    };
-
-
 #if defined(HAVE_OPENMP)
 
-    struct OpenMPTaskDispatcher : public TaskDispatcher
+    struct OpenMPTaskDispatcher final : public TaskDispatcher
     {
-        virtual void dispatch(Task * task, void * context, int count) {
+        virtual void dispatch(Task * task, void * context, int count) override final {
             #pragma omp parallel for
             for (int i = 0; i < count; i++) {
                 task(context, i);
@@ -67,7 +58,7 @@ namespace nvtt {
 #if HAVE_GCD
 
     // Task dispatcher using Apple's Grand Central Dispatch.
-    struct AppleTaskDispatcher : public TaskDispatcher
+    struct AppleTaskDispatcher final : public TaskDispatcher
     {
         // @@ This is really lame, but I refuse to use size_t in the public API.
         struct BlockContext {
@@ -101,7 +92,7 @@ namespace nvtt {
     };
 
     // Task dispatcher using Microsoft's concurrency runtime.
-    struct MicrosoftTaskDispatcher : public TaskDispatcher
+    struct MicrosoftTaskDispatcher final : public TaskDispatcher
     {
         virtual void dispatch(Task * task, void * context, int count)
         {
@@ -123,8 +114,8 @@ namespace nvtt {
         void * context;
     };
 
-    // Task dispatcher using Inte's Thread Building Blocks.
-    struct IntelTaskDispatcher : public TaskDispatcher
+    // Task dispatcher using Intel's Thread Building Blocks.
+    struct IntelTaskDispatcher final : public TaskDispatcher
     {
         virtual void dispatch(Task * task, void * context, int count) {
             parallel_for(blocked_range<int>(0, count, 1), TaskFunctor(task, context));
@@ -142,8 +133,8 @@ namespace nvtt {
 #elif defined(HAVE_GCD)
     typedef AppleTaskDispatcher         ConcurrentTaskDispatcher;
 #else
-    //typedef SequentialTaskDispatcher    ConcurrentTaskDispatcher;
-    typedef ParallelTaskDispatcher        ConcurrentTaskDispatcher;
+    typedef SequentialTaskDispatcher    ConcurrentTaskDispatcher;
+    //typedef ParallelTaskDispatcher        ConcurrentTaskDispatcher;
 #endif
 
 } // namespace nvtt

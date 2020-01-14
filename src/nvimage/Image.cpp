@@ -1,7 +1,6 @@
 // This code is in the public domain -- castanyo@yahoo.es
 
 #include "Image.h"
-#include "ImageIO.h"
 
 #include "nvmath/Color.h"
 
@@ -100,18 +99,7 @@ bool Image::load(const char * name)
 {
     free();
 
-    AutoPtr<Image> img(ImageIO::load(name));
-    if (img == NULL) {
-        return false;
-    }
-
-    swap(m_width, img->m_width);
-    swap(m_height, img->m_height);
-	swap(m_depth, img->m_depth);
-    swap(m_format, img->m_format);
-    swap(m_data, img->m_data);
-
-    return true;
+    return false;
 }
 
 void Image::wrap(void * data, uint w, uint h, uint d)

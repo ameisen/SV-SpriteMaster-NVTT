@@ -746,7 +746,7 @@ namespace
 #if NV_OS_WIN32 //&& NV_CC_MSVC
 
     /** Win32 assert handler. */
-    struct Win32AssertHandler : public AssertHandler 
+    struct Win32AssertHandler final : public AssertHandler 
     {
         // Flush the message queue. This is necessary for the message box to show up.
         static void flushMessageQueue()
@@ -817,7 +817,7 @@ namespace
 #elif NV_OS_XBOX
 
     /** Xbox360 assert handler. */
-    struct Xbox360AssertHandler : public AssertHandler 
+    struct Xbox360AssertHandler final : public AssertHandler
     {
         // Assert handler method.
         virtual int assertion(const char * exp, const char * file, int line, const char * func, const char * msg, va_list arg)
@@ -849,7 +849,7 @@ namespace
 #elif NV_OS_ORBIS
 
     /** Orbis assert handler. */
-    struct OrbisAssertHandler : public AssertHandler
+    struct OrbisAssertHandler final : public AssertHandler
     {
         // Assert handler method.
         virtual int assertion(const char * exp, const char * file, int line, const char * func, const char * msg, va_list arg)
@@ -879,7 +879,7 @@ namespace
 #else
 
     /** Unix assert handler. */
-    struct UnixAssertHandler : public AssertHandler
+    struct UnixAssertHandler final : public AssertHandler
     {
         // Assert handler method.
         virtual int assertion(const char * exp, const char * file, int line, const char * func, const char * msg, va_list arg)

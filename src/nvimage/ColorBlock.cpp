@@ -2,7 +2,6 @@
 
 #include "ColorBlock.h"
 #include "Image.h"
-#include "FloatImage.h"
 
 #include "nvmath/Box.h"
 #include "nvmath/Vector.inl"

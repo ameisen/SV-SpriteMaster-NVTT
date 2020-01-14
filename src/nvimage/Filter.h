@@ -30,7 +30,7 @@ namespace nv
     };
 
     // Box filter.
-    class NVIMAGE_CLASS BoxFilter : public Filter
+    class NVIMAGE_CLASS BoxFilter final : public Filter
     {
     public:
         BoxFilter();
@@ -39,7 +39,7 @@ namespace nv
     };
 
     // Triangle (bilinear/tent) filter.
-    class NVIMAGE_CLASS TriangleFilter : public Filter
+    class NVIMAGE_CLASS TriangleFilter final : public Filter
     {
     public:
         TriangleFilter();
@@ -48,7 +48,7 @@ namespace nv
     };
 
     // Quadratic (bell) filter.
-    class NVIMAGE_CLASS QuadraticFilter : public Filter
+    class NVIMAGE_CLASS QuadraticFilter final : public Filter
     {
     public:
         QuadraticFilter();
@@ -56,7 +56,7 @@ namespace nv
     };
 
     // Cubic filter from Thatcher Ulrich.
-    class NVIMAGE_CLASS CubicFilter : public Filter
+    class NVIMAGE_CLASS CubicFilter final : public Filter
     {
     public:
         CubicFilter();
@@ -64,7 +64,7 @@ namespace nv
     };
 
     // Cubic b-spline filter from Paul Heckbert.
-    class NVIMAGE_CLASS BSplineFilter : public Filter
+    class NVIMAGE_CLASS BSplineFilter final : public Filter
     {
     public:
         BSplineFilter();
@@ -73,7 +73,7 @@ namespace nv
 
     /// Mitchell & Netravali's two-param cubic
     /// @see "Reconstruction Filters in Computer Graphics", SIGGRAPH 88
-    class NVIMAGE_CLASS MitchellFilter : public Filter
+    class NVIMAGE_CLASS MitchellFilter final : public Filter
     {
     public:
         MitchellFilter();
@@ -87,7 +87,7 @@ namespace nv
     };
 
     // Lanczos3 filter.
-    class NVIMAGE_CLASS LanczosFilter : public Filter
+    class NVIMAGE_CLASS LanczosFilter final : public Filter
     {
     public:
         LanczosFilter();
@@ -95,7 +95,7 @@ namespace nv
     };
 
     // Sinc filter.
-    class NVIMAGE_CLASS SincFilter : public Filter
+    class NVIMAGE_CLASS SincFilter final : public Filter
     {
     public:
         SincFilter(float w);
@@ -103,7 +103,7 @@ namespace nv
     };
 
     // Kaiser filter.
-    class NVIMAGE_CLASS KaiserFilter : public Filter
+    class NVIMAGE_CLASS KaiserFilter final : public Filter
     {
     public:
         KaiserFilter(float w);
@@ -117,7 +117,7 @@ namespace nv
     };
 
     // Gaussian filter.
-    class GaussianFilter : public Filter
+    class GaussianFilter final : public Filter
     {
     public:
         GaussianFilter(float w);

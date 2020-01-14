@@ -34,7 +34,7 @@
 
 namespace nvsquish {
 
-class WeightedClusterFit : public ColourFit
+class WeightedClusterFit final : public ColourFit
 {
 public:
 	WeightedClusterFit();

@@ -23,7 +23,6 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 #include "Surface.h"
-#include "CompressorETC.h" // for ETC decoder.
 
 #include "nvmath/Vector.inl"
 #include "nvmath/Matrix.inl"
@@ -33,8 +32,6 @@
 #include "nvmath/PackedFloat.h"
 
 #include "nvimage/Filter.h"
-#include "nvimage/ImageIO.h"
-#include "nvimage/NormalMap.h"
 #include "nvimage/BlockDXT.h"
 #include "nvimage/ColorBlock.h"
 #include "nvimage/PixelFormat.h"
@@ -566,102 +563,12 @@ void Surface::range(int channel, float * rangeMin, float * rangeMax, int alpha_c
 
 bool Surface::load(const char * fileName, bool * hasAlpha/*= NULL*/)
 {
-    AutoPtr<FloatImage> img(ImageIO::loadFloat(fileName));
-    if (img == NULL) {
-        // Try loading as DDS.
-        if (nv::strEqual(nv::Path::extension(fileName), ".dds")) {
-            nv::DirectDrawSurface dds;
-            if (dds.load(fileName)) {
-                if (dds.header.isBlockFormat()) {
-                    int w = dds.surfaceWidth(0);
-                    int h = dds.surfaceHeight(0);
-                    uint size = dds.surfaceSize(0);
-
-                    void * data = malloc(size);
-                    dds.readSurface(0, 0, data, size);
-
-                    // @@ Handle all formats! @@ Get nvtt format from dds.surfaceFormat() ?
-
-                    if (dds.header.hasDX10Header()) {
-                        if (dds.header.header10.dxgiFormat == DXGI_FORMAT_BC6H_UF16) {
-                            this->setImage2D(nvtt::Format_BC6, nvtt::Decoder_D3D10, w, h, data);
-                        }
-                        else {
-                            // @@
-                            nvCheck(false);
-                        }
-                    }
-                    else {
-                        uint fourcc = dds.header.pf.fourcc;
-                        if (fourcc == FOURCC_DXT1) {
-                            this->setImage2D(nvtt::Format_BC1, nvtt::Decoder_D3D10, w, h, data);
-                        }
-                        else if (fourcc == FOURCC_DXT5) {
-                            this->setImage2D(nvtt::Format_BC3, nvtt::Decoder_D3D10, w, h, data);
-                        }
-                        else {
-                            // @@ 
-                            nvCheck(false);
-                        }
-                    }
-
-                    free(data);
-                }
-                else {
-                    Image img;
-                    dds.mipmap(&img, /*face=*/0, /*mipmap=*/0);
-
-                    int w = img.width();
-                    int h = img.height();
-                    int d = img.depth();
-
-                    // @@ Add support for all pixel formats.
-
-                    this->setImage(nvtt::InputFormat_BGRA_8UB, w, h, d, img.pixels());
-                }
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    detach();
-
-    if (hasAlpha != NULL) {
-        *hasAlpha = (img->componentCount() == 4);
-    }
-
-    // @@ Have loadFloat allocate the image with the desired number of channels.
-    img->resizeChannelCount(4); // Block compressors expect a 4 channel texture.
-
-    delete m->image;
-    m->image = img.release();
-
-    return true;
+    return false;
 }
 
 bool Surface::save(const char * fileName, bool hasAlpha/*=0*/, bool hdr/*=0*/) const
 {
-    if (m->image == NULL) {
-        return false;
-    }
-
-    if (hdr) {
-        return ImageIO::saveFloat(fileName, m->image, 0, 4);
-    }
-    else {
-        uint c = min<uint>(m->image->componentCount(), 4);
-        AutoPtr<Image> image(m->image->createImage(0, c));
-        nvCheck(image != NULL);
-
-        if (hasAlpha) {
-            image->setFormat(Image::Format_ARGB);
-        }
-
-        return ImageIO::save(fileName, image.ptr());
-    }
+  return false;
 }
 
 
@@ -2776,173 +2683,30 @@ void Surface::quantize(int channel, int bits, bool exactEndPoints, bool dither)
 // Set normal map options.
 void Surface::toNormalMap(float sm, float medium, float big, float large)
 {
-    if (isNull()) return;
-
-    detach();
-
-    const Vector4 filterWeights(sm, medium, big, large);
-
-    const FloatImage * img = m->image;
-    m->image = nv::createNormalMap(img, (FloatImage::WrapMode)m->wrapMode, filterWeights);
-
-    delete img;
-
-    m->isNormalMap = true;
 }
 
 void Surface::normalizeNormalMap()
 {
-    if (isNull()) return;
-    if (!m->isNormalMap) return;
-
-    detach();
-
-    nv::normalizeNormalMap(m->image);
 }
 
 void Surface::transformNormals(NormalTransform xform)
 {
-    if (isNull()) return;
-
-    detach();
-
-    FloatImage * img = m->image;
-
-    const uint count = img->pixelCount();
-    for (uint i = 0; i < count; i++) {
-        float & x = img->pixel(0, i);
-        float & y = img->pixel(1, i);
-        float & z = img->pixel(2, i);
-        Vector3 n(x, y, z);
-
-        n = normalizeSafe(n, Vector3(0.0f), 0.0f);
-
-        if (xform == NormalTransform_Orthographic) {
-            n.z = 0.0f;
-        }
-        else if (xform == NormalTransform_Stereographic) {
-            n.x = n.x / (1 + n.z);
-            n.y = n.y / (1 + n.z);
-            n.z = 0.0f;
-        }
-        else if (xform == NormalTransform_Paraboloid) {
-            float a = (n.x * n.x) + (n.y * n.y);
-            float b = n.z;
-            float c = -1.0f;
-            float discriminant = b * b - 4.0f * a * c;
-            float t = (-b + sqrtf(discriminant)) / (2.0f * a);
-            n.x = n.x * t;
-            n.y = n.y * t;
-            n.z = 0.0f;
-        }
-        else if (xform == NormalTransform_Quartic) {
-            // Use Newton's method to solve equation:
-            // f(t) = 1 - zt - (x^2+y^2)t^2 + x^2y^2t^4 = 0
-            // f'(t) = - z - 2(x^2+y^2)t + 4x^2y^2t^3
-
-            // Initial approximation:
-            float a = (n.x * n.x) + (n.y * n.y);
-            float b = n.z;
-            float c = -1.0f;
-            float discriminant = b * b - 4.0f * a * c;
-            float t = (-b + sqrtf(discriminant)) / (2.0f * a);
-
-            float d = fabsf(n.z * t - (1 - n.x*n.x*t*t) * (1 - n.y*n.y*t*t));
-
-            while (d > 0.0001) {
-                float ft = 1 - n.z * t - (n.x*n.x + n.y*n.y)*t*t + n.x*n.x*n.y*n.y*t*t*t*t;
-                float fit = - n.z - 2*(n.x*n.x + n.y*n.y)*t + 4*n.x*n.x*n.y*n.y*t*t*t;
-                t -= ft / fit;
-                d = fabsf(n.z * t - (1 - n.x*n.x*t*t) * (1 - n.y*n.y*t*t));
-            };
-
-            n.x = n.x * t;
-            n.y = n.y * t;
-            n.z = 0.0f;
-        }
-        /*else if (xform == NormalTransform_DualParaboloid) {
-
-        }*/
-
-        x = n.x;
-        y = n.y;
-        z = n.z;
-    }
 }
 
 void Surface::reconstructNormals(NormalTransform xform)
 {
-    if (isNull()) return;
-
-    detach();
-
-    FloatImage * img = m->image;
-
-    const uint count = img->pixelCount();
-    for (uint i = 0; i < count; i++) {
-        float & x = img->pixel(0, i);
-        float & y = img->pixel(1, i);
-        float & z = img->pixel(2, i);
-        Vector3 n(x, y, z);
-
-        if (xform == NormalTransform_Orthographic) {
-            n.z = sqrtf(1 - nv::clamp(n.x * n.x + n.y * n.y, 0.0f, 1.0f));
-        }
-        else if (xform == NormalTransform_Stereographic) {
-            float denom = 2.0f / (1 + nv::clamp(n.x * n.x + n.y * n.y, 0.0f, 1.0f));
-            n.x *= denom;
-            n.y *= denom;
-            n.z = denom - 1;
-        }
-        else if (xform == NormalTransform_Paraboloid) {
-            n.x = n.x;
-            n.y = n.y;
-            n.z = 1.0f - nv::clamp(n.x * n.x + n.y * n.y, 0.0f, 1.0f);
-            n = normalizeSafe(n, Vector3(0.0f), 0.0f);
-        }
-        else if (xform == NormalTransform_Quartic) {
-            n.x = n.x;
-            n.y = n.y;
-            n.z = nv::clamp((1 - n.x * n.x) * (1 - n.y * n.y), 0.0f, 1.0f);
-            n = normalizeSafe(n, Vector3(0.0f), 0.0f);
-        }
-        /*else if (xform == NormalTransform_DualParaboloid) {
-
-        }*/
-
-        x = n.x;
-        y = n.y;
-        z = n.z;
-    }
 }
 
 void Surface::toCleanNormalMap()
 {
-    if (isNull()) return;
-
-    detach();
-
-    const uint count = m->image->pixelCount();
-    for (uint i = 0; i < count; i++) {
-        float x = m->image->pixel(0, i);
-        float y = m->image->pixel(1, i);
-
-        m->image->pixel(2, i) = x*x + y*y;
-    }
 }
 
 // [-1,1] -> [ 0,1]
 void Surface::packNormals(float scale/*= 0.5f*/, float bias/*= 0.5f*/) {
-    if (isNull()) return;
-    detach();
-    m->image->scaleBias(0, 3, scale, bias);
 }
 
 // [ 0,1] -> [-1,1]
 void Surface::expandNormals(float scale/*= 2.0f*/, float bias/*= - 2.0f * 127.0f / 255.0f*/) {
-    if (isNull()) return;
-    detach();
-    m->image->scaleBias(0, 3, scale, bias);
 }
 
 
@@ -2951,10 +2715,6 @@ void Surface::expandNormals(float scale/*= 2.0f*/, float bias/*= - 2.0f * 127.0f
 // @@ Assumes this is a normal map expanded in the [-1, 1] range.
 Surface Surface::createToksvigMap(float power) const
 {
-    if (isNull()) return Surface();
-
-    // @@ TODO
-
     return Surface();
 }
 
@@ -2966,10 +2726,6 @@ Surface Surface::createToksvigMap(float power) const
 // http://gaim.umbc.edu/2011/07/26/on-error/
 NVTT_API Surface Surface::createCleanMap() const
 {
-    if (isNull()) return Surface();
-
-    // @@ TODO
-
     return Surface();
 }
 

@@ -29,7 +29,7 @@
 
 // An OutputHandler/ErrorHandler that sets and calls function pointers, rather than
 // requiring interfaces to derive from OutputHandler/ErrorHandler itself
-struct HandlerProxy : public nvtt::OutputHandler, public nvtt::ErrorHandler
+struct HandlerProxy final : public nvtt::OutputHandler, public nvtt::ErrorHandler
 {
 public:
 

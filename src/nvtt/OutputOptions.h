@@ -34,7 +34,7 @@
 namespace nvtt
 {
 
-    struct DefaultOutputHandler : public nvtt::OutputHandler
+    struct DefaultOutputHandler final : public nvtt::OutputHandler
     {
         DefaultOutputHandler(const char * fileName) : stream(fileName) {}
         DefaultOutputHandler(FILE * fp) : stream(fp, false) {}

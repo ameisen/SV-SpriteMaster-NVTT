@@ -5,9 +5,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-    <Filter Include="cuda">
-      <UniqueIdentifier>{18fa5da9-6ed8-4990-880e-ab4234fe2114}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nvtt.rc">
@@ -17,15 +14,6 @@
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\nvtt\cuda\CudaCompressorDXT.h">
-      <Filter>cuda</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\nvtt\cuda\CudaMath.h">
-      <Filter>cuda</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\src\nvtt\cuda\CudaUtils.h">
-      <Filter>cuda</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\nvtt\ClusterFit.h" />
     <ClInclude Include="..\..\..\src\nvtt\CompressionOptions.h" />
@@ -45,12 +33,6 @@
     <ClInclude Include="..\..\..\src\nvtt\CompressorDXT1.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\nvtt\cuda\CudaCompressorDXT.cpp">
-      <Filter>cuda</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\nvtt\cuda\CudaUtils.cpp">
-      <Filter>cuda</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\nvtt\ClusterFit.cpp" />
     <ClCompile Include="..\..\..\src\nvtt\CompressionOptions.cpp" />
     <ClCompile Include="..\..\..\src\nvtt\CompressorDX9.cpp" />
@@ -64,17 +46,6 @@
     <ClCompile Include="..\..\..\src\nvtt\SingleColorLookup.cpp" />
     <ClCompile Include="..\..\..\src\nvtt\Surface.cpp" />
     <ClCompile Include="..\..\..\src\nvtt\BlockCompressor.cpp" />
-    <ClCompile Include="..\..\..\src\nvtt\TaskDispatcher.cpp" />
     <ClCompile Include="..\..\..\src\nvtt\CompressorDXT1.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuildStep Include="..\..\..\src\nvtt\cuda\ConvolveKernel.cu">
-      <Filter>cuda</Filter>
-    </CustomBuildStep>
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="..\..\..\src\nvtt\cuda\CompressKernel.cu">
-      <Filter>cuda</Filter>
-    </CudaCompile>
   </ItemGroup>
 </Project>

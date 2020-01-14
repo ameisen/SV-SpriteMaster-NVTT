@@ -222,7 +222,7 @@ namespace nv
 
 
     /// Second order spherical harmonic.
-    class Sh2 : public Sh
+    class Sh2 final : public Sh
     {
     public:
 

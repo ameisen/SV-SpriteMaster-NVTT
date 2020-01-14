@@ -29,7 +29,6 @@
 #include "OutputOptions.h"
 #include "ClusterFit.h"
 //#include "CompressorDXT1.h"
-#include "CompressorDXT5_RGBM.h"
 
 // squish
 #include "squish/colourset.h"

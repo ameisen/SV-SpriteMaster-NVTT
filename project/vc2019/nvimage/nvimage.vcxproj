@@ -167,11 +167,8 @@
     <ClCompile Include="..\..\..\src\nvimage\ErrorMetric.cpp" />
     <ClCompile Include="..\..\..\src\nvimage\Filter.cpp" />
     <ClCompile Include="..\..\..\src\nvimage\FloatImage.cpp" />
-    <ClCompile Include="..\..\..\src\nvimage\KtxFile.cpp" />
     <ClCompile Include="..\..\..\src\nvmath\Half.cpp" />
     <ClCompile Include="..\..\..\src\nvimage\Image.cpp" />
-    <ClCompile Include="..\..\..\src\nvimage\ImageIO.cpp" />
-    <ClCompile Include="..\..\..\src\nvimage\NormalMap.cpp" />
     <ClCompile Include="..\..\..\src\nvimage\Quantize.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -181,16 +178,11 @@
     <ClInclude Include="..\..\..\src\nvimage\ErrorMetric.h" />
     <ClInclude Include="..\..\..\src\nvimage\Filter.h" />
     <ClInclude Include="..\..\..\src\nvimage\FloatImage.h" />
-    <ClInclude Include="..\..\..\src\nvimage\KtxFile.h" />
     <ClInclude Include="..\..\..\src\nvmath\Half.h" />
     <ClInclude Include="..\..\..\src\nvimage\Image.h" />
-    <ClInclude Include="..\..\..\src\nvimage\ImageIO.h" />
-    <ClInclude Include="..\..\..\src\nvimage\NormalMap.h" />
     <ClInclude Include="..\..\..\src\nvimage\nvimage.h" />
     <ClInclude Include="..\..\..\src\nvimage\PixelFormat.h" />
-    <ClInclude Include="..\..\..\src\nvimage\PsdFile.h" />
     <ClInclude Include="..\..\..\src\nvimage\Quantize.h" />
-    <ClInclude Include="..\..\..\src\nvimage\TgaFile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

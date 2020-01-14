@@ -34,7 +34,7 @@ namespace nv
 
     struct ColorBlockCompressor : public CompressorInterface
     {
-        virtual void compress(nvtt::AlphaMode alphaMode, uint w, uint h, uint d, const float * rgba, nvtt::TaskDispatcher * dispatcher, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
+        virtual void compress(nvtt::AlphaMode alphaMode, uint w, uint h, uint d, const float * rgba, nvtt::TaskDispatcher * dispatcher, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions) final;
 
         virtual void compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output) = 0;
         virtual uint blockSize() const = 0;
@@ -42,7 +42,7 @@ namespace nv
 
     struct FloatColorCompressor : public CompressorInterface
     {
-        virtual void compress(nvtt::AlphaMode alphaMode, uint w, uint h, uint d, const float * rgba, nvtt::TaskDispatcher * dispatcher, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
+        virtual void compress(nvtt::AlphaMode alphaMode, uint w, uint h, uint d, const float * rgba, nvtt::TaskDispatcher * dispatcher, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions) final;
 
         virtual void compressBlock(Vector4 colors[16], float weights[16], const nvtt::CompressionOptions::Private & compressionOptions, void * output) = 0;
         virtual uint blockSize(const nvtt::CompressionOptions::Private & compressionOptions) const = 0;
@@ -50,12 +50,12 @@ namespace nv
 
 
     // BC1
-    struct FastCompressorDXT1 : public FloatColorCompressor
+    struct FastCompressorDXT1 final : public FloatColorCompressor
     {
         virtual void compressBlock(Vector4 colors[16], float weights[16], const nvtt::CompressionOptions::Private & compressionOptions, void * output);
         virtual uint blockSize(const nvtt::CompressionOptions::Private &) const { return 8; }
     };
-    struct CompressorDXT1 : public FloatColorCompressor
+    struct CompressorDXT1 final : public FloatColorCompressor
     {
         virtual void compressBlock(Vector4 colors[16], float weights[16], const nvtt::CompressionOptions::Private & compressionOptions, void * output);
         virtual uint blockSize(const nvtt::CompressionOptions::Private &) const { return 8; }
@@ -73,12 +73,12 @@ namespace nv
 
 #if !DISABLE_ETC
     // ETC
-    struct CompressorETC1 : public FloatColorCompressor
+    struct CompressorETC1 final : public FloatColorCompressor
     {
         virtual void compressBlock(Vector4 colors[16], float weights[16], const nvtt::CompressionOptions::Private & compressionOptions, void * output);
         virtual uint blockSize(const nvtt::CompressionOptions::Private &) const { return 8; }
     };
-    struct CompressorETC2_R : public FloatColorCompressor
+    struct CompressorETC2_R final : public FloatColorCompressor
     {
         virtual void compressBlock(Vector4 colors[16], float weights[16], const nvtt::CompressionOptions::Private & compressionOptions, void * output);
         virtual uint blockSize(const nvtt::CompressionOptions::Private & ) const { return 8; }
@@ -108,33 +108,33 @@ namespace nv
     
     // External compressors.
 #if defined(HAVE_ATITC)
-    struct AtiCompressorDXT1 : public CompressorInterface
+    struct AtiCompressorDXT1 final : public CompressorInterface
     {
         virtual void compress(nvtt::InputFormat inputFormat, nvtt::AlphaMode alphaMode, uint w, uint h, uint d, void * data, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
     };
 
-    struct AtiCompressorDXT5 : public CompressorInterface
+    struct AtiCompressorDXT5 final : public CompressorInterface
     {
         virtual void compress(nvtt::InputFormat inputFormat, nvtt::AlphaMode alphaMode, uint w, uint h, uint d, void * data, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
     };
 #endif
 
 #if defined(HAVE_SQUISH)
-    struct SquishCompressorDXT1 : public CompressorInterface
+    struct SquishCompressorDXT1 final : public CompressorInterface
     {
         virtual void compress(nvtt::InputFormat inputFormat, nvtt::AlphaMode alphaMode, uint w, uint h, uint d, void * data, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
     };
 #endif
 
 #if defined(HAVE_D3DX)
-    struct D3DXCompressorDXT1 : public CompressorInterface
+    struct D3DXCompressorDXT1 final : public CompressorInterface
     {
         virtual void compress(nvtt::InputFormat inputFormat, nvtt::AlphaMode alphaMode, uint w, uint h, uint d, void * data, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
     };
 #endif
 
 #if defined(HAVE_STB)
-    struct StbCompressorDXT1 : public ColorBlockCompressor
+    struct StbCompressorDXT1 final : public ColorBlockCompressor
     {
         virtual void compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output);
         virtual uint blockSize() const { return 8; }
@@ -142,43 +142,43 @@ namespace nv
 #endif
 
 #if NV_USE_CRUNCH
-    struct CrunchCompressorETC1 : public CompressorInterface
+    struct CrunchCompressorETC1 final : public CompressorInterface
     {
         virtual void compress(nvtt::InputFormat inputFormat, nvtt::AlphaMode alphaMode, uint w, uint h, uint d, void * data, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
     };
 #endif
 
 #if NV_USE_INTEL_ISPC_TC
-    struct IspcCompressorBC1 : public CompressorInterface
+    struct IspcCompressorBC1 final : public CompressorInterface
     {
         virtual void compress(nvtt::InputFormat inputFormat, nvtt::AlphaMode alphaMode, uint w, uint h, uint d, void * data, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
     };
 
-    struct IspcCompressorBC3 : public CompressorInterface
+    struct IspcCompressorBC3 final : public CompressorInterface
     {
         virtual void compress(nvtt::InputFormat inputFormat, nvtt::AlphaMode alphaMode, uint w, uint h, uint d, void * data, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
     };
 
-    struct IspcCompressorBC7 : public CompressorInterface
+    struct IspcCompressorBC7 final : public CompressorInterface
     {
         virtual void compress(nvtt::InputFormat inputFormat, nvtt::AlphaMode alphaMode, uint w, uint h, uint d, void * data, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
     };
 
-    struct IspcCompressorETC1 : public CompressorInterface
+    struct IspcCompressorETC1 final : public CompressorInterface
     {
         virtual void compress(nvtt::InputFormat inputFormat, nvtt::AlphaMode alphaMode, uint w, uint h, uint d, void * data, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
     };
 #endif
 
 #if defined(HAVE_ETCLIB)
-    struct EtcLibCompressor : public CompressorInterface
+    struct EtcLibCompressor final : public CompressorInterface
     {
         virtual void compress(nvtt::AlphaMode alphaMode, uint w, uint h, uint d, const float * data, nvtt::TaskDispatcher * dispatcher, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
     };
 #endif
 
 #if defined(HAVE_RGETC)
-    struct RgEtcCompressor : public ColorBlockCompressor
+    struct RgEtcCompressor final : public ColorBlockCompressor
     {
         virtual void compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output);
         virtual uint blockSize() const { return 8; }
@@ -186,7 +186,7 @@ namespace nv
 #endif
 
 #if defined(HAVE_PVRTEXTOOL)
-    struct CompressorPVR : public CompressorInterface
+    struct CompressorPVR final : public CompressorInterface
     {
         virtual void compress(nvtt::AlphaMode alphaMode, uint w, uint h, uint d, const float * data, nvtt::TaskDispatcher * dispatcher, const nvtt::CompressionOptions::Private & compressionOptions, const nvtt::OutputOptions::Private & outputOptions);
     };

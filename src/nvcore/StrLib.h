@@ -183,7 +183,7 @@ namespace nv
 
 
     /// Path string. @@ This should be called PathBuilder.
-    class NVCORE_CLASS Path : public StringBuilder
+    class NVCORE_CLASS Path final : public StringBuilder
     {
     public:
         Path() : StringBuilder() {}

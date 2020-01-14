@@ -28,7 +28,6 @@
 #include "nvcore/Ptr.h"
 
 #include "nvtt/Compressor.h"
-#include "nvtt/cuda/CudaCompressorDXT.h"
 #include "nvtt.h"
 #include "TaskDispatcher.h"
 
@@ -59,11 +58,6 @@ namespace nvtt
         nv::CompressorInterface * chooseGpuCompressor(const CompressionOptions::Private & compressionOptions) const;
 
         int estimateSize(int w, int h, int d, int mipmapCount, const CompressionOptions::Private & compressionOptions) const;
-
-        bool cudaSupported;
-        bool cudaEnabled;
-
-        nv::AutoPtr<nv::CudaContext> cuda;
 
         TaskDispatcher * dispatcher;
         //SequentialTaskDispatcher defaultDispatcher;

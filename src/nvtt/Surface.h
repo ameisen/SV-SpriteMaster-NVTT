@@ -36,7 +36,7 @@
 namespace nvtt
 {
 
-    struct Surface::Private : public nv::RefCounted
+    struct Surface::Private final : public nv::RefCounted
     {
         void operator=(const Private &);
     public:

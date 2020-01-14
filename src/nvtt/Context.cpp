@@ -34,19 +34,14 @@
 #include "CompressorDX9.h"
 //#include "CompressorDX10.h"
 //#include "CompressorDX11.h"
-#include "CompressorRGB.h"
-#include "cuda/CudaUtils.h"
-#include "cuda/CudaCompressorDXT.h"
 
 #include "nvimage/DirectDrawSurface.h"
-#include "nvimage/KtxFile.h"
 #include "nvimage/ColorBlock.h"
 #include "nvimage/BlockDXT.h"
 #include "nvimage/Image.h"
 #include "nvimage/FloatImage.h"
 #include "nvimage/Filter.h"
 #include "nvimage/Quantize.h"
-#include "nvimage/NormalMap.h"
 #include "nvimage/PixelFormat.h"
 #include "nvimage/ColorSpace.h"
 
@@ -59,13 +54,6 @@ using namespace nvtt;
 
 Compressor::Compressor() : m(*new Compressor::Private())
 {
-    // CUDA initialization.
-    m.cudaSupported = cuda::isHardwarePresent();
-    m.cudaEnabled = false;
-    m.cuda = NULL;
-
-    enableCudaAcceleration(m.cudaSupported);
-
     m.dispatcher = &m.defaultDispatcher;
 }
 
@@ -77,26 +65,11 @@ Compressor::~Compressor()
 
 void Compressor::enableCudaAcceleration(bool enable)
 {
-    if (m.cudaSupported)
-    {
-        m.cudaEnabled = enable;
-    }
-
-    if (m.cudaEnabled && m.cuda == NULL)
-    {
-        m.cuda = new CudaContext();
-
-        if (!m.cuda->isValid())
-        {
-            m.cudaEnabled = false;
-            m.cuda = NULL;
-        }
-    }
 }
 
 bool Compressor::isCudaAccelerationEnabled() const
 {
-    return m.cudaEnabled;
+  return false;
 }
 
 void Compressor::setTaskDispatcher(TaskDispatcher * disp)
@@ -249,227 +222,98 @@ bool Compressor::Private::compress(const InputOptions::Private & inputOptions, c
     //}
 
 
-    if (outputOptions.container != Container_KTX)
-    {
-        nvtt::Surface img;
-        img.setWrapMode(inputOptions.wrapMode);
-        img.setAlphaMode(inputOptions.alphaMode);
-        img.setNormalMap(inputOptions.isNormalMap);
+      nvtt::Surface img;
+      img.setWrapMode(inputOptions.wrapMode);
+      img.setAlphaMode(inputOptions.alphaMode);
+      img.setNormalMap(inputOptions.isNormalMap);
 
-        // Output each face from the largest mipmap to the smallest.
-        for (int f = 0; f < faceCount; f++)
-        {
-            int w = width;
-            int h = height;
-            int d = depth;
-            bool canUseSourceImagesForThisFace = canUseSourceImages;
+      // Output each face from the largest mipmap to the smallest.
+      for (int f = 0; f < faceCount; f++)
+      {
+          int w = width;
+          int h = height;
+          int d = depth;
+          bool canUseSourceImagesForThisFace = canUseSourceImages;
 
-            img.setImage(inputOptions.inputFormat, inputOptions.width, inputOptions.height, inputOptions.depth, inputOptions.images[f]);
+          img.setImage(inputOptions.inputFormat, inputOptions.width, inputOptions.height, inputOptions.depth, inputOptions.images[f]);
 
-            // To normal map.
-            if (inputOptions.convertToNormalMap) {
-                img.toGreyScale(inputOptions.heightFactors.x, inputOptions.heightFactors.y, inputOptions.heightFactors.z, inputOptions.heightFactors.w);
-                img.toNormalMap(inputOptions.bumpFrequencyScale.x, inputOptions.bumpFrequencyScale.y, inputOptions.bumpFrequencyScale.z, inputOptions.bumpFrequencyScale.w);
-            }
+          // To normal map.
+          if (inputOptions.convertToNormalMap) {
+              img.toGreyScale(inputOptions.heightFactors.x, inputOptions.heightFactors.y, inputOptions.heightFactors.z, inputOptions.heightFactors.w);
+              img.toNormalMap(inputOptions.bumpFrequencyScale.x, inputOptions.bumpFrequencyScale.y, inputOptions.bumpFrequencyScale.z, inputOptions.bumpFrequencyScale.w);
+          }
 
-            // To linear space.
-            if (!img.isNormalMap()) {
-                img.toLinear(inputOptions.inputGamma);
-            }
+          // To linear space.
+          if (!img.isNormalMap()) {
+              img.toLinear(inputOptions.inputGamma);
+          }
 
-            // Resize input.
-            img.resize(w, h, d, ResizeFilter_Box);
+          // Resize input.
+          img.resize(w, h, d, ResizeFilter_Box);
 
-            nvtt::Surface tmp = img;
-            if (!img.isNormalMap()) {
-                tmp.toGamma(inputOptions.outputGamma);
-            }
+          nvtt::Surface tmp = img;
+          if (!img.isNormalMap()) {
+              tmp.toGamma(inputOptions.outputGamma);
+          }
 
-            quantize(tmp, compressionOptions);
-            compress(tmp, f, 0, compressionOptions, outputOptions);
+          quantize(tmp, compressionOptions);
+          compress(tmp, f, 0, compressionOptions, outputOptions);
 
-            for (int m = 1; m < mipmapCount; m++) {
-                w = max(1, w/2);
-                h = max(1, h/2);
-                d = max(1, d/2);
+          for (int m = 1; m < mipmapCount; m++) {
+              w = max(1, w/2);
+              h = max(1, h/2);
+              d = max(1, d/2);
 
-                int idx = m * faceCount + f;
+              int idx = m * faceCount + f;
 
-                bool useSourceImages = false;
-                if (canUseSourceImagesForThisFace) {
-                    if (inputOptions.images[idx] == NULL) { // One face is missing in this mipmap level.
-                        canUseSourceImagesForThisFace = false; // If one level is missing, ignore the following source images.
-                    }
-                    else {
-                        useSourceImages = true;
-                    }
-                }
+              bool useSourceImages = false;
+              if (canUseSourceImagesForThisFace) {
+                  if (inputOptions.images[idx] == NULL) { // One face is missing in this mipmap level.
+                      canUseSourceImagesForThisFace = false; // If one level is missing, ignore the following source images.
+                  }
+                  else {
+                      useSourceImages = true;
+                  }
+              }
 
-                if (useSourceImages) {
-                    img.setImage(inputOptions.inputFormat, w, h, d, inputOptions.images[idx]);
+              if (useSourceImages) {
+                  img.setImage(inputOptions.inputFormat, w, h, d, inputOptions.images[idx]);
 
-                    // For already generated mipmaps, we need to convert to linear.
-                    if (!img.isNormalMap()) {
-                        img.toLinear(inputOptions.inputGamma);
-                    }
-                }
-                else {
-                    if (inputOptions.mipmapFilter == MipmapFilter_Kaiser) {
-                        float params[2] = { inputOptions.kaiserAlpha, inputOptions.kaiserStretch };
-                        img.buildNextMipmap(MipmapFilter_Kaiser, inputOptions.kaiserWidth, params);
-                    }
-                    else {
-                        img.buildNextMipmap(inputOptions.mipmapFilter);
-                    }
-                }
-                nvDebugCheck(img.width() == w);
-                nvDebugCheck(img.height() == h);
-                nvDebugCheck(img.depth() == d);
+                  // For already generated mipmaps, we need to convert to linear.
+                  if (!img.isNormalMap()) {
+                      img.toLinear(inputOptions.inputGamma);
+                  }
+              }
+              else {
+                  if (inputOptions.mipmapFilter == MipmapFilter_Kaiser) {
+                      float params[2] = { inputOptions.kaiserAlpha, inputOptions.kaiserStretch };
+                      img.buildNextMipmap(MipmapFilter_Kaiser, inputOptions.kaiserWidth, params);
+                  }
+                  else {
+                      img.buildNextMipmap(inputOptions.mipmapFilter);
+                  }
+              }
+              nvDebugCheck(img.width() == w);
+              nvDebugCheck(img.height() == h);
+              nvDebugCheck(img.depth() == d);
 
-                if (img.isNormalMap()) {
-                    if (inputOptions.normalizeMipmaps) {
-                        img.expandNormals();
-                        img.normalizeNormalMap();
-                        img.packNormals();
-                    }
-                    tmp = img;
-                }
-                else {
-                    tmp = img;
-                    tmp.toGamma(inputOptions.outputGamma);
-                }
+              if (img.isNormalMap()) {
+                  if (inputOptions.normalizeMipmaps) {
+                      img.expandNormals();
+                      img.normalizeNormalMap();
+                      img.packNormals();
+                  }
+                  tmp = img;
+              }
+              else {
+                  tmp = img;
+                  tmp.toGamma(inputOptions.outputGamma);
+              }
 
-                quantize(tmp, compressionOptions);
-                compress(tmp, f, m, compressionOptions, outputOptions);
-            }
-        }
-    }
-    else
-    {
-        // KTX files expect face mipmaps to be interleaved.
-        Array<nvtt::Surface> images(faceCount);
-        Array<bool> mipChainBroken(faceCount);
-
-        int w = width;
-        int h = height;
-        int d = depth;
-
-        // https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/#2.16
-        uint imageSize = estimateSize(w, h, 1, 1, compressionOptions) * faceCount;
-        outputOptions.writeData(&imageSize, sizeof(uint32));
-
-        for (int f = 0; f < faceCount; f++)
-        {
-            nvtt::Surface s;
-            s.setWrapMode(inputOptions.wrapMode);
-            s.setAlphaMode(inputOptions.alphaMode);
-            s.setNormalMap(inputOptions.isNormalMap);
-
-            s.setImage(inputOptions.inputFormat, inputOptions.width, inputOptions.height, inputOptions.depth, inputOptions.images[f]);
-
-            // To normal map.
-            if (inputOptions.convertToNormalMap) {
-                s.toGreyScale(inputOptions.heightFactors.x, inputOptions.heightFactors.y, inputOptions.heightFactors.z, inputOptions.heightFactors.w);
-                s.toNormalMap(inputOptions.bumpFrequencyScale.x, inputOptions.bumpFrequencyScale.y, inputOptions.bumpFrequencyScale.z, inputOptions.bumpFrequencyScale.w);
-            }
-
-            // To linear space.
-            if (!s.isNormalMap()) {
-                s.toLinear(inputOptions.inputGamma);
-            }
-
-            // Resize input.
-            s.resize(w, h, d, ResizeFilter_Box);
-
-            nvtt::Surface tmp = s;
-            if (!s.isNormalMap()) {
-                tmp.toGamma(inputOptions.outputGamma);
-            }
-
-            quantize(tmp, compressionOptions);
-            compress(tmp, f, 0, compressionOptions, outputOptions);
-
-            images.push_back(s);
-            mipChainBroken.push_back(false);
-        }
-
-        static const unsigned char padding[3] = {0, 0, 0};
-        for (int m = 1; m < mipmapCount; m++)
-        {
-            w = max(1, w/2);
-            h = max(1, h/2);
-            d = max(1, d/2);
-
-            // https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/#2.16
-            imageSize = estimateSize(w, h, d, 1, compressionOptions) * faceCount;
-
-            outputOptions.writeData(&imageSize, sizeof(uint32));
-
-            nvtt::Surface tmp;
-
-            for (int f = 0; f < faceCount; f++)
-            {
-                nvtt::Surface& img = images[f];
-                int idx = m * faceCount + f;
-
-                bool useSourceImages = false;
-                if (!mipChainBroken[f]) {
-                    if (inputOptions.images[idx] == NULL) { // One face is missing in this mipmap level.
-                        mipChainBroken[f] = false; // If one level is missing, ignore the following source images.
-                    }
-                    else {
-                        useSourceImages = true;
-                    }
-                }
-
-                if (useSourceImages) {
-                    img.setImage(inputOptions.inputFormat, w, h, d, inputOptions.images[idx]);
-
-                    // For already generated mipmaps, we need to convert to linear.
-                    if (!img.isNormalMap()) {
-                        img.toLinear(inputOptions.inputGamma);
-                    }
-                }
-                else {
-                    if (inputOptions.mipmapFilter == MipmapFilter_Kaiser) {
-                        float params[2] = { inputOptions.kaiserStretch, inputOptions.kaiserAlpha };
-                        img.buildNextMipmap(MipmapFilter_Kaiser, inputOptions.kaiserWidth, params);
-                    }
-                    else {
-                        img.buildNextMipmap(inputOptions.mipmapFilter);
-                    }
-                }
-                nvDebugCheck(img.width() == w);
-                nvDebugCheck(img.height() == h);
-                nvDebugCheck(img.depth() == d);
-
-                if (img.isNormalMap()) {
-                    if (inputOptions.normalizeMipmaps) {
-                        img.normalizeNormalMap();
-                    }
-                    tmp = img;
-                }
-                else {
-                    tmp = img;
-                    tmp.toGamma(inputOptions.outputGamma);
-                }
-
-                quantize(tmp, compressionOptions);
-                compress(tmp, f, m, compressionOptions, outputOptions);
-
-                //cube padding
-                if (faceCount == 6 && arraySize == 1)
-                {
-                    //TODO calc offset for uncompressed images
-                }
-            }
-
-            int mipPadding = 3 - ((imageSize + 3) % 4);
-            if (mipPadding != 0) {
-                outputOptions.writeData(&padding, mipPadding);
-            }
-        }
-    }
+              quantize(tmp, compressionOptions);
+              compress(tmp, f, m, compressionOptions, outputOptions);
+          }
+      }
 
     return true;
 }
@@ -524,16 +368,9 @@ void Compressor::Private::quantize(Surface & img, const CompressionOptions::Priv
             img.quantize(1, 6, true, true);
             img.quantize(2, 5, true, true);
         }
-        else if (compressionOptions.format == Format_RGB) {
-            img.quantize(0, compressionOptions.rsize, true, true);
-            img.quantize(1, compressionOptions.gsize, true, true);
-            img.quantize(2, compressionOptions.bsize, true, true);
-        }
     }
     if (compressionOptions.enableAlphaDithering) {
-        if (compressionOptions.format == Format_RGB) {
-            img.quantize(3, compressionOptions.asize, true, true);
-        }
+
     }
     else if (compressionOptions.binaryAlpha) {
         img.binarize(3, float(compressionOptions.alphaThreshold)/255.0f, compressionOptions.enableAlphaDithering);
@@ -1086,61 +923,6 @@ CompressorInterface * Compressor::Private::chooseCpuCompressor(const Compression
 
 CompressorInterface * Compressor::Private::chooseGpuCompressor(const CompressionOptions::Private & compressionOptions) const
 {
-    nvDebugCheck(cudaSupported);
-
-    if (compressionOptions.quality == Quality_Fastest)
-    {
-        // Do not use CUDA compressors in fastest quality mode.
-        return NULL;
-    }
-
-#if defined HAVE_CUDA
-    if (compressionOptions.format == Format_DXT1)
-    {
-        return new CudaCompressorDXT1(*cuda);
-    }
-    else if (compressionOptions.format == Format_DXT1a)
-    {
-        //#pragma NV_MESSAGE("TODO: Implement CUDA DXT1a compressor.")
-    }
-    else if (compressionOptions.format == Format_DXT1n)
-    {
-        // Not supported.
-    }
-    else if (compressionOptions.format == Format_DXT3)
-    {
-        //return new CudaCompressorDXT3(*cuda);
-    }
-    else if (compressionOptions.format == Format_DXT5)
-    {
-        //return new CudaCompressorDXT5(*cuda);
-    }
-    else if (compressionOptions.format == Format_DXT5n)
-    {
-        // @@ Return CUDA compressor.
-    }
-    else if (compressionOptions.format == Format_BC4)
-    {
-        // Not supported.
-    }
-    else if (compressionOptions.format == Format_BC5)
-    {
-        // Not supported.
-    }
-    else if (compressionOptions.format == Format_CTX1)
-    {
-        // @@ Return CUDA compressor.
-    }
-    else if (compressionOptions.format == Format_BC6)
-    {
-        // Not supported.
-    }
-    else if (compressionOptions.format == Format_BC7)
-    {
-        // Not supported.
-    }
-#endif // defined HAVE_CUDA
-
     return NULL;
 }
 

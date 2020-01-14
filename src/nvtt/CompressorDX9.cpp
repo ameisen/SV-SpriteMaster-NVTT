@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 
 #include "CompressorDX9.h"
-#include "QuickCompressDXT.h"
+//#include "QuickCompressDXT.h"
 #include "OptimalCompressDXT.h"
 #include "CompressionOptions.h"
 #include "OutputOptions.h"
@@ -53,23 +53,23 @@ using namespace nvtt;
 
 
 
-void FastCompressorDXT1a::compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output)
-{
-    BlockDXT1 * block = new(output) BlockDXT1;
-    QuickCompress::compressDXT1a(rgba, block);
-}
-
-void FastCompressorDXT3::compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output)
-{
-    BlockDXT3 * block = new(output) BlockDXT3;
-    QuickCompress::compressDXT3(rgba, block);
-}
-
-void FastCompressorDXT5::compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output)
-{
-    BlockDXT5 * block = new(output) BlockDXT5;
-    QuickCompress::compressDXT5(rgba, block);
-}
+//void FastCompressorDXT1a::compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output)
+//{
+//    BlockDXT1 * block = new(output) BlockDXT1;
+//    QuickCompress::compressDXT1a(rgba, block);
+//}
+//
+//void FastCompressorDXT3::compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output)
+//{
+//    BlockDXT3 * block = new(output) BlockDXT3;
+//    QuickCompress::compressDXT3(rgba, block);
+//}
+//
+//void FastCompressorDXT5::compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output)
+//{
+//    BlockDXT5 * block = new(output) BlockDXT5;
+//    QuickCompress::compressDXT5(rgba, block);
+//}
 
 /*
 void FastCompressorDXT5n::compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output)
@@ -149,14 +149,14 @@ void CompressorDXT5::compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode,
     BlockDXT5 * block = new(output) BlockDXT5;
 
     // Compress alpha.
-    if (compressionOptions.quality == Quality_Highest)
+    //if (compressionOptions.quality == Quality_Highest)
     {
         OptimalCompress::compressDXT5A(rgba, &block->alpha);
     }
-    else
-    {
-        QuickCompress::compressDXT5A(rgba, &block->alpha);
-    }
+    //else
+    //{
+    //    QuickCompress::compressDXT5A(rgba, &block->alpha);
+    //}
 
     // Compress color.
     if (rgba.isSingleColor())

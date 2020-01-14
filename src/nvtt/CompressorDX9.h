@@ -32,6 +32,7 @@ namespace nv
     struct ColorBlock;
 
     // Fast CPU compressors.
+    /*
     struct FastCompressorDXT1a final : public ColorBlockCompressor
     {
         virtual void compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output);
@@ -49,6 +50,7 @@ namespace nv
         virtual void compressBlock(ColorBlock & rgba, nvtt::AlphaMode alphaMode, const nvtt::CompressionOptions::Private & compressionOptions, void * output);
         virtual uint blockSize() const { return 16; }
     };
+    */
 
     /*
     struct FastCompressorDXT5n final : public ColorBlockCompressor

@@ -48,7 +48,7 @@ CompressionOptions::~CompressionOptions()
 void CompressionOptions::reset()
 {
     m.format = Format_DXT1;
-    m.quality = Quality_Normal;
+    m.quality = Quality_Highest;
     m.colorWeight.set(1.0f, 1.0f, 1.0f, 1.0f);
     m.rgbmThreshold = 0.15f;
     

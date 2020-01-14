@@ -208,10 +208,10 @@ void FloatColorCompressor::compress(AlphaMode alphaMode, uint w, uint h, uint d,
 // BC1
 #include "CompressorDXT1.h"
 
-void FastCompressorDXT1::compressBlock(Vector4 colors[16], float weights[16], const CompressionOptions::Private & compressionOptions, void * output)
-{
-    compress_dxt1_fast(colors, weights, compressionOptions.colorWeight.xyz(), (BlockDXT1 *)output);
-}
+//void FastCompressorDXT1::compressBlock(Vector4 colors[16], float weights[16], const CompressionOptions::Private & compressionOptions, void * output)
+//{
+//    compress_dxt1_fast(colors, weights, compressionOptions.colorWeight.xyz(), (BlockDXT1 *)output);
+//}
 void CompressorDXT1::compressBlock(Vector4 colors[16], float weights[16], const CompressionOptions::Private & compressionOptions, void * output)
 {
     compress_dxt1(colors, weights, compressionOptions.colorWeight.xyz(), /*three_color_mode*/true, (BlockDXT1 *)output);

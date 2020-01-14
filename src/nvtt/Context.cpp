@@ -803,19 +803,21 @@ CompressorInterface * Compressor::Private::chooseCpuCompressor(const Compression
         else
 #endif
 
+          /*
         if (compressionOptions.quality == Quality_Fastest)
         {
             return new FastCompressorDXT1;
         }
+        */
 
         return new CompressorDXT1;
     }
     else if (compressionOptions.format == Format_DXT1a)
     {
-        if (compressionOptions.quality == Quality_Fastest)
-        {
-            return new FastCompressorDXT1a;
-        }
+       // if (compressionOptions.quality == Quality_Fastest)
+       // {
+        //    return new FastCompressorDXT1a;
+       // }
 
         return new CompressorDXT1a;
     }
@@ -825,10 +827,10 @@ CompressorInterface * Compressor::Private::chooseCpuCompressor(const Compression
     }
     else if (compressionOptions.format == Format_DXT3)
     {
-        if (compressionOptions.quality == Quality_Fastest)
-        {
-            return new FastCompressorDXT3;
-        }
+        //if (compressionOptions.quality == Quality_Fastest)
+       // {
+       //     return new FastCompressorDXT3;
+       // }
 
         return new CompressorDXT3;
     }
@@ -839,10 +841,10 @@ CompressorInterface * Compressor::Private::chooseCpuCompressor(const Compression
         else
 #endif
 
-        if (compressionOptions.quality == Quality_Fastest)
-        {
-            return new FastCompressorDXT5;
-        }
+       // if (compressionOptions.quality == Quality_Fastest)
+       // {
+       //     return new FastCompressorDXT5;
+       // }
 
         return new CompressorDXT5;
     }

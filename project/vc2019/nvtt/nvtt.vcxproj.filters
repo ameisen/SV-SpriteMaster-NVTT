@@ -25,7 +25,6 @@
     <ClInclude Include="..\..\..\src\nvtt\nvtt_wrapper.h" />
     <ClInclude Include="..\..\..\src\nvtt\OptimalCompressDXT.h" />
     <ClInclude Include="..\..\..\src\nvtt\OutputOptions.h" />
-    <ClInclude Include="..\..\..\src\nvtt\QuickCompressDXT.h" />
     <ClInclude Include="..\..\..\src\nvtt\TaskDispatcher.h" />
     <ClInclude Include="..\..\..\src\nvtt\Surface.h" />
     <ClInclude Include="..\..\..\src\nvtt\BlockCompressor.h" />
@@ -42,7 +41,6 @@
     <ClCompile Include="..\..\..\src\nvtt\nvtt_wrapper.cpp" />
     <ClCompile Include="..\..\..\src\nvtt\OptimalCompressDXT.cpp" />
     <ClCompile Include="..\..\..\src\nvtt\OutputOptions.cpp" />
-    <ClCompile Include="..\..\..\src\nvtt\QuickCompressDXT.cpp" />
     <ClCompile Include="..\..\..\src\nvtt\SingleColorLookup.cpp" />
     <ClCompile Include="..\..\..\src\nvtt\Surface.cpp" />
     <ClCompile Include="..\..\..\src\nvtt\BlockCompressor.cpp" />

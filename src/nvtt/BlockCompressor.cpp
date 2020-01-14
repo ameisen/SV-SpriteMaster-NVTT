@@ -383,8 +383,8 @@ void AtiCompressorDXT5::compress(InputFormat inputFormat, AlphaMode alphaMode, u
 
 #if defined(HAVE_SQUISH)
 
-//#include "squish/squish.h"
-#include "squish-1.10/squish.h"
+#include "squish/squish.h"
+//#include "squish-1.10/squish.h"
 
 void SquishCompressorDXT1::compress(InputFormat inputFormat, AlphaMode alphaMode, uint w, uint h, uint d, void * data, const CompressionOptions::Private & compressionOptions, const OutputOptions::Private & outputOptions)
 {
